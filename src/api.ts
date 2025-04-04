@@ -12,6 +12,13 @@ interface WeavyConfig {
   apiKey: string;
 }
 
+function safeJsonParse(text: string) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
+}
 
 class WeavyAPI {
   private config: WeavyConfig;
@@ -25,9 +32,8 @@ class WeavyAPI {
       const headers: HeadersInit = {
         'Authorization': `Bearer ${this.config.apiKey}`,
         'Accept': 'application/json',
-        'Content-Type': 'application/json', // Ensure Content-Type is set
+        'Content-Type': 'application/json',
       };
-
 
       const response = await fetch(`${API_URL}${endpoint}`, {
         ...options,
@@ -56,7 +62,31 @@ class WeavyAPI {
     });
   }
 
+  async listUsers() {
+    return this.fetchWithAuth('/api/users');
+  }
 
+  async getUser(uid: string) {
+    return this.fetchWithAuth(`/api/users/${uid}`);
+  }
+
+  async updateUser(uid: string, userData: UpdateUserPayload) {
+    return this.fetchWithAuth(`/api/users/${uid}`, {
+      method: 'PATCH',
+      body: JSON.stringify(userData),
+    });
+  }
+
+
+  async deleteUser(uid: string) {
+    return this.fetchWithAuth(`/api/users/${uid}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ _method: 'DELETE', userId: uid })
+    });
+  }
 
 
 }

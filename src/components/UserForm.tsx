@@ -36,7 +36,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         if (file) {
             const imageUrl = URL.createObjectURL(file);
             setPreviewImage(imageUrl);
-            setFormData({ ...formData, picture: imageUrl }); // You may need to upload this file and store the URL
+            setFormData({ ...formData, picture: imageUrl });
         }
     };
 

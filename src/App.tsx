@@ -44,7 +44,31 @@ function App() {
         }
     };
 
+    const handleUpdateUser = async (userData: CreateUserPayload) => {
+        if (!editingUser) return;
+        try {
+            await weavyApi.updateUser(editingUser.uid, userData);
+            toast.success('User updated successfully');
+            setEditingUser(null);
+            fetchUsers();
+        } catch (error) {
+            toast.error('Failed to update user');
+        }
+    };
 
+
+    const handleDeleteUser = async (uid: string) => {
+        if (!confirm('Are you sure you want to delete this user?')) return;
+
+        try {
+            await weavyApi.deleteUser(uid);
+            toast.success('User deleted successfully');
+            fetchUsers();
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            toast.error('Failed to delete user');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -83,7 +107,7 @@ function App() {
                                 </h2>
                                 <UserForm
                                     user={editingUser}
-                                    onSubmit={ handleCreateUser}
+                                    onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
                                     onCancel={() => {
                                         setShowForm(false);
                                         setEditingUser(null);
@@ -124,13 +148,13 @@ function App() {
                                             </div>
                                             <div className="flex space-x-2">
                                                 <button
-
+                                                    onClick={() => setEditingUser(user)}
                                                     className="text-gray-400 hover:text-gray-500"
                                                 >
                                                     <Edit2 className="h-5 w-5" />
                                                 </button>
                                                 <button
-
+                                                    onClick={() => handleDeleteUser(user.uid)}
                                                     className="text-red-400 hover:text-red-500"
                                                 >
                                                     <Trash2 className="h-5 w-5" />
