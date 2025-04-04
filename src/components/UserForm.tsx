@@ -15,7 +15,7 @@ interface UserFormProps {
 }
 
 export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
-    const [formData] = useState<CreateUserPayload>({
+    const [formData, setFormData] = useState<CreateUserPayload>({
         uid: user?.uid || "",
         name: user?.name || "",
         email: user?.email || "",
@@ -24,13 +24,21 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         picture: user?.picture || ""
     });
 
+    const [previewImage, setPreviewImage] = useState<string>(user?.picture || "");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(formData);
     };
 
-
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setPreviewImage(imageUrl);
+            setFormData({ ...formData, picture: imageUrl }); // You may need to upload this file and store the URL
+        }
+    };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -41,6 +49,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                     type="text"
                     required
                     value={formData.uid}
+                    onChange={(e) => setFormData({ ...formData, uid: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
             </div>
@@ -52,6 +61,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                     type="text"
                     required
                     value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
             </div>
@@ -63,6 +73,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                     type="email"
                     required
                     value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
             </div>
@@ -73,6 +84,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                 <input
                     type="text"
                     value={formData.given_name || ""}
+                    onChange={(e) => setFormData({ ...formData, given_name: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
             </div>
@@ -83,6 +95,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                 <input
                     type="text"
                     value={formData.family_name || ""}
+                    onChange={(e) => setFormData({ ...formData, family_name: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
             </div>
@@ -93,10 +106,16 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
                 <input
                     type="file"
                     accept="image/*"
-
+                    onChange={handleFileChange}
                     className="mt-1 block w-full"
                 />
-
+                {previewImage && (
+                    <img
+                        src={previewImage}
+                        alt="Preview"
+                        className="mt-2 w-32 h-32 object-cover rounded-md border"
+                    />
+                )}
             </div>
 
             {/* Action Buttons */}

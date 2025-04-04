@@ -1,8 +1,8 @@
-import React, { useState} from 'react';
-import { Toaster} from 'react-hot-toast';
+import React, { useState, useEffect } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
 import { Users, UserPlus, Trash2, Edit2, RefreshCw } from 'lucide-react';
-
-import { User } from './types';
+import { weavyApi } from './api';
+import { User, CreateUserPayload } from './types';
 import { UserForm } from './components/UserForm';
 
 /**
@@ -12,9 +12,37 @@ import { UserForm } from './components/UserForm';
  **/
 
 function App() {
-
+    const [users, setUsers] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const response = await weavyApi.listUsers();
+            setUsers(response.data);
+        } catch (error) {
+            toast.error('Failed to fetch users');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const handleCreateUser = async (userData: CreateUserPayload) => {
+        try {
+            await weavyApi.createUser(userData);
+            toast.success('User created successfully');
+            setShowForm(false);
+            fetchUsers();
+        } catch (error) {
+            toast.error('Failed to create user');
+        }
+    };
 
 
 
@@ -31,6 +59,7 @@ function App() {
                         </div>
                         <div className="flex space-x-2">
                             <button
+                                onClick={() => fetchUsers()}
                                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                             >
                                 <RefreshCw className="h-4 w-4 mr-2" />
@@ -53,7 +82,8 @@ function App() {
                                     {editingUser ? 'Edit User' : 'Create New User'}
                                 </h2>
                                 <UserForm
-
+                                    user={editingUser}
+                                    onSubmit={ handleCreateUser}
                                     onCancel={() => {
                                         setShowForm(false);
                                         setEditingUser(null);
@@ -63,31 +93,33 @@ function App() {
                         </div>
                     )}
 
-
+                    {loading ? (
                         <div className="flex justify-center items-center h-64">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                         </div>
                     ) : (
                         <div className="bg-white shadow overflow-hidden sm:rounded-md">
                             <ul className="divide-y divide-gray-200">
-
-                                    <li  className="px-6 py-4">
+                                {users.map((user) => (
+                                    <li key={user.uid} className="px-6 py-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center">
-                                                      <img
-
+                                                {user.picture ? (
+                                                    <img
+                                                        src={user.picture}
+                                                        alt={user.name}
                                                         className="h-10 w-10 rounded-full"
                                                     />
                                                 ) : (
                                                     <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                             <span className="text-gray-500 text-lg">
-
+                              {user.name.charAt(0).toUpperCase()}
                             </span>
                                                     </div>
                                                 )}
                                                 <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900"></div>
-                                                    <div className="text-sm text-gray-500"></div>
+                                                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                                    <div className="text-sm text-gray-500">{user.uid}</div>
                                                 </div>
                                             </div>
                                             <div className="flex space-x-2">
@@ -98,6 +130,7 @@ function App() {
                                                     <Edit2 className="h-5 w-5" />
                                                 </button>
                                                 <button
+
                                                     className="text-red-400 hover:text-red-500"
                                                 >
                                                     <Trash2 className="h-5 w-5" />
@@ -105,7 +138,7 @@ function App() {
                                             </div>
                                         </div>
                                     </li>
-
+                                ))}
                             </ul>
                         </div>
                     )}
